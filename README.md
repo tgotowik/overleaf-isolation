@@ -14,7 +14,7 @@ Work in progress: Basically, it works like this: However, starting Docker in pri
 
 ## How to
 1. Build apptainer image: ```apptainer build /apptainer/images/latexmk-isolated.sif apptainer/latexmk-isolated.def```.
-2. Build modified sharelatex+apptainer image: ```docker build -t sharelatex+apptainer:5.5.2 -f overleaf/Dockerfile .```.
+2. Build modified sharelatex+apptainer image: ```docker build -t sharelatex-apptainer:5.5.2 .```.
 3. Modify your ```overleaf/config/docker-compose.override.yml```.
 4. Start overleaf
 
