@@ -22,4 +22,4 @@ RUN mv /usr/local/bin/latexmk /usr/local/bin/latexmkoriginal
 COPY latexmk /usr/local/bin/latexmk
 RUN chmod 777 /usr/local/bin/latexmk
 
-CMD ["/bin/bash"]
+CMD ["/sbin/my_init"]
