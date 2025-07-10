@@ -1,0 +1,22 @@
+Bootstrap: docker
+From: docker.io/texlive/texlive:latest
+
+%post
+    # update tlgmr and instal latexmk
+    tlmgr update --self
+    tlmgr update --all
+    luaotfload-tool -fu
+    tlmgr install scheme-full
+    tlmgr path add
+
+    # install gnuplut, inkspace, asyptote, fonts and inkspace
+    apt-get update && \
+    apt-get install -y gnuplot inkscape asymptote fonts-karla && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+    fc-cache -f
+
+    # fix asymptote
+    ln -s /lib/x86_64-linux-gnu/libglut.so.3.12.0 /lib/x86_64-linux-gnu/libglut.so.3
+
+%runscript
+    exec /bin/bash "$@"

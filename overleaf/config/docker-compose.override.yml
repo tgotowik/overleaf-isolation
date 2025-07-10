@@ -1,0 +1,8 @@
+---
+version: "2.2"
+services:
+    sharelatex:
+        image: sharelatex+apptainer:5.5.2
+        privileged: true
+        volumes:
+          - /apptainer/images/latexmk-isolated.sif:/apptainer/latexmk-isolated.sif:ro
