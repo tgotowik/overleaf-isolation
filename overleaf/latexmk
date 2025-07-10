@@ -46,12 +46,13 @@ def main(args):
 
         custom_args[0] = "latexmk"
 
+        # TODO: sanatize paths --> escaping through filenames
         apptainer_command = [
             "apptainer", "exec",
             "--cleanenv",
             "--no-mount", "dev,hosts,sys,tmp",
             "--no-home",
-            "--contain",
+#            "--contain",
             "--bind", f"{tmpdirname}:{tmpdirname}",
             "/apptainer/latexmk-isolated.sif"
         ] + custom_args
