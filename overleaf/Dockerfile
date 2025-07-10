@@ -19,7 +19,7 @@ RUN rm -f apptainer_1.4.1_amd64.deb apptainer-suid_1.4.1_amd64.deb
 RUN mv /usr/local/bin/latexmk /usr/local/bin/latexmkoriginal
 
 # Copy proof-of-concept latexmk
-COPY ../latexmk /usr/local/bin/latexmk
+COPY latexmk /usr/local/bin/latexmk
 RUN chmod 777 /usr/local/bin/latexmk
 
 CMD ["/bin/bash"]
