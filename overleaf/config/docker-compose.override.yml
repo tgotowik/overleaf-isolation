@@ -1,8 +1,12 @@
 ---
-version: "2.2"
 services:
     sharelatex:
         image: sharelatex-apptainer:5.5.1
-        privileged: true
         volumes:
           - /apptainer/images/latexmk-isolated.sif:/apptainer/latexmk-isolated.sif:ro
+        security_opt:
+          - seccomp=unconfined
+          - no-new-privileges=true
+          - apparmor=unconfined
+        devices:
+          - /dev/fuse
