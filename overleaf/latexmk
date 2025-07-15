@@ -6,10 +6,14 @@ import shutil
 import tempfile
 import subprocess
 import logging
+import re
 
 
 LOGFILE = "/tmp/latexmkwrapper.log"
 DEBUG = True
+FILE_REGEX = "[a-zA-Z0-9\ _-]+\.tex"
+COMPILER = ["-pdf", "-pdfdvi", "-lualatex", "-xelatex"]
+
 logging.basicConfig(
     filename=LOGFILE,
     level=logging.DEBUG,
@@ -18,41 +22,60 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def main(args):
-    logger.info("-----------------------------------------------------------")
 
+def main(args):
     if DEBUG:
         logger.debug("Original command: " + " ".join(args))
 
     pwd = os.getcwd()
 
-    # check if auxdir and outdir is set
-    if not any(arg.startswith("-auxdir=" + pwd) for arg in args):
-        logger.error("-auxdir is missing")
-        sys.exit(1)
-
-    if not any(arg.startswith("-outdir=" + pwd) for arg in args):
-        logger.error("-outdir is missing")
-        sys.exit(1)
+    compiler = ""
+    auxdir = ""
+    outdir = ""
+    infile = ""
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         # tmp project files
         shutil.copytree(pwd, tmpdirname, dirs_exist_ok=True)
 
-        # set new dir to command
+        # set tmp path to args and save old args
         custom_args = []
         for arg in args:
             custom_args.append(arg.replace(pwd, tmpdirname)) 
+            if arg.startswith("-auxdir="):
+                auxdir = arg[len("-auxdir="):]
+            elif arg.startswith("-outdir"):
+                outdir = arg[len("-outdir="):]
+            elif arg in COMPILER:
+                compiler = arg[len("-"):]
+            elif arg == sys.argv[-1]:
+                infile = arg
 
         custom_args[0] = "latexmk"
 
-        # TODO: sanatize paths --> escaping through filenames
+        # sanitize filename
+        file_path = custom_args[-1]
+        filename = os.path.basename(file_path)
+
+        # if not valid filename
+        if not re.match(FILE_REGEX, filename):
+            logger.error(f"Unsecure filename: {filename}")
+            with open(auxdir + "/output.log", "a") as f:
+                f.write("Error: Filename not supported. Please only use letters, hyphens, underscore and spaces before the .tex\n")
+            sys.exit(0)
+
+        safe_file_path = os.path.join(tmpdirname, filename)
+        custom_args[-1] = safe_file_path
+        
+        if DEBUG:
+            logger.debug(f"Custom Args: {custom_args}")
+
         apptainer_command = [
             "apptainer", "exec",
             "--cleanenv",
             "--no-mount", "dev,hosts,sys,tmp",
             "--no-home",
-#            "--contain",
+#            "--contain", TODO: is that a must have option? otherwise latexmk wont compile with --shell-escapes
             "--bind", f"{tmpdirname}:{tmpdirname}",
             "/apptainer/latexmk-isolated.sif"
         ] + custom_args
