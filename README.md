@@ -10,7 +10,8 @@ This solution only requires a minor modification to the Overleaf container, so i
 - ```apptainer/latexmk-isolated.def```: This file defines how to build an isolated TeX image for Apptainer. Modify the content as needed.
 
 ## Status
-Work in progress: Basically, it works like this: However, starting Docker in privileged mode opens other doors.
+Work in progress: Basically, it works like this, but needs enhancements for hardening:
+ - apparmor profile and seccomp profile with bare minimun permissions
 
 ## How to
 1. Build apptainer image: ```apptainer build /apptainer/images/latexmk-isolated.sif apptainer/latexmk-isolated.def```.
