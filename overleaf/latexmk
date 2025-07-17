@@ -2,8 +2,6 @@
 
 import sys
 import os
-import shutil
-import tempfile
 import subprocess
 import logging
 import re
@@ -34,69 +32,74 @@ def main(args):
     outdir = ""
     infile = ""
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        # tmp project files
-        shutil.copytree(pwd, tmpdirname, dirs_exist_ok=True)
+    # if need to customize arguments
+    custom_args = []
+    for arg in args:
+        custom_args.append(arg) 
+        if arg.startswith("-auxdir="):
+            auxdir = arg[len("-auxdir="):]
+        elif arg.startswith("-outdir"):
+            outdir = arg[len("-outdir="):]
+        elif arg in COMPILER:
+            compiler = arg[len("-"):]
+        elif arg == sys.argv[-1]:
+            infile = arg
 
-        # set tmp path to args and save old args
-        custom_args = []
-        for arg in args:
-            custom_args.append(arg.replace(pwd, tmpdirname)) 
-            if arg.startswith("-auxdir="):
-                auxdir = arg[len("-auxdir="):]
-            elif arg.startswith("-outdir"):
-                outdir = arg[len("-outdir="):]
-            elif arg in COMPILER:
-                compiler = arg[len("-"):]
-            elif arg == sys.argv[-1]:
-                infile = arg
+    custom_args[0] = "latexmk"
+    
+    # sanitize filename
+    file_path = custom_args[-1]
+    filename = os.path.basename(file_path)
 
-        custom_args[0] = "latexmk"
-
-        # sanitize filename
-        file_path = custom_args[-1]
-        filename = os.path.basename(file_path)
-
-        # if not valid filename
-        if not re.match(FILE_REGEX, filename):
-            logger.error(f"Unsecure filename: {filename}")
-            with open(auxdir + "/output.log", "a") as f:
-                f.write("Error: Filename not supported. Please only use letters, hyphens, underscore and spaces before the .tex\n")
-            sys.exit(0)
-
-        safe_file_path = os.path.join(tmpdirname, filename)
-        custom_args[-1] = safe_file_path
-        
-        if DEBUG:
-            logger.debug(f"Custom Args: {custom_args}")
-
-        apptainer_command = [
-            "apptainer", "exec",
-            "--cleanenv",
-            "--no-mount", "dev,hosts,sys,tmp",
-            "--no-home",
-#            "--contain", TODO: is that a must have option? otherwise latexmk wont compile with --shell-escapes
-            "--bind", f"{tmpdirname}:{tmpdirname}",
-            "/apptainer/latexmk-isolated.sif"
-        ] + custom_args
-
-        if DEBUG:
-            logger.debug("Apptainer command: " + " ".join(apptainer_command))
-
-        try:
-            result = subprocess.run(apptainer_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        except Exception as e:
-            logger.error(f"Something went wrong on running {apptainer_command}: {e}")
-
-        if DEBUG:
-            logger.debug(f"{result.stdout}")
-        
-        if result and result.returncode != 0:
-            logger.error(f"{result.stderr}")
-            logger.error(f"{result.returncode}")
-
-        shutil.copytree(tmpdirname, pwd, dirs_exist_ok=True)
+    # if not valid filename
+    if not re.match(FILE_REGEX, filename):
+        logger.error(f"Unsecure filename: {filename}")
+        with open(auxdir + "/output.log", "a") as f:
+            f.write("Error: Filename not supported. Please only use letters, hyphens, underscore and spaces before the .tex\n")
         sys.exit(0)
+
+    safe_file_path = os.path.join(pwd, filename)
+    custom_args[-1] = safe_file_path
+    
+    if DEBUG:
+        logger.debug(f"Custom Args: {custom_args}")
+
+    # TODO: can this be more restricted? 
+    # mounts tmp und dev for biblatex and other packages needed...
+    apptainer_command = [
+        "apptainer", "exec",
+        "--cleanenv",
+        "--no-mount", "sys,tmp",
+        "--no-home",
+        "--no-privs",
+        "--writable-tmpfs",
+#        "--contain", TODO: more secure with that options, but shell-escapes won't work
+        "--bind", f"{pwd}:{pwd}", # TODO: same bind needed, because synctex.gz is using old pwd... are there more things that have pwd builtin from previous command?
+        "/apptainer/latexmk-isolated.sif"
+    ] + custom_args
+
+    if DEBUG:
+        logger.debug("Apptainer command: " + " ".join(apptainer_command))
+        logger.debug(f"Contents of {pwd}: {os.listdir(pwd)}")
+
+    try:
+        result = subprocess.run(apptainer_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except Exception as e:
+        logger.error(f"Something went wrong on running {apptainer_command}: {e}")
+        sys.exit(0)
+
+    if DEBUG:
+        logger.debug(f"{result.stdout}")
+    with open(auxdir + "/output.log", "a") as f:
+        f.write(result.stdout)
+    
+    if result and result.returncode != 0:
+        logger.error(f"{result.stderr}")
+        logger.error(f"{result.returncode}")
+        with open(auxdir + "/output.log", "a") as f:
+            f.write(result.stderr)
+
+    sys.exit(0)
 
 
 if __name__ == "__main__":

@@ -1,19 +1,36 @@
 Bootstrap: docker
-From: docker.io/texlive/texlive:latest
+From: debian:bookworm
 
 %post
-    # update tlgmr and instal latexmk
-    tlmgr update --self
-    tlmgr update --all
-    luaotfload-tool -fu
-    tlmgr install scheme-full
-    tlmgr path add
+    export DEBIAN_FRONTEND=noninteractive
 
-    # install gnuplut, inkspace, asyptote, fonts and inkspace
-    apt-get update && \
-    apt-get install -y gnuplot inkscape asymptote fonts-karla && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-    fc-cache -f
+    apt-get update && apt-get upgrade -y
+
+    apt-get install -y \
+        texlive-full \
+        latexmk \
+        make \
+        git \
+        curl \
+        wget \
+        unzip \
+        ghostscript \
+        inkscape \
+        python3 \
+        python3-pygments \
+        fonts-freefont-ttf \
+        lmodern \
+        gnuplot \
+        inkscape \
+        asymptote \
+        fonts-karla
+
+    apt-get clean
+
+%environment
+    export PATH=/usr/local/texlive/*/bin/x86_64-linux:$PATH
+    export LANG=de_De.UTF-8
+    export LC_ALL=de_DE.UTF-8
 
 %runscript
-    exec /bin/bash "$@"
+    latexmk "$@"
