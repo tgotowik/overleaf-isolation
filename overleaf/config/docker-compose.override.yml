@@ -1,9 +1,10 @@
 ---
 services:
     sharelatex:
-        image: sharelatex-apptainer:5.5.1
+        image: sharelatex-apptainerv7:5.5.1
         volumes:
           - /apptainer/images/latexmk-isolated.sif:/apptainer/latexmk-isolated.sif:ro
+          - /opt/overleaf/overleaf-toolkit/data/overleaf:/var/lib/overleaf
         security_opt:
           - seccomp=unconfined
           - no-new-privileges=true
