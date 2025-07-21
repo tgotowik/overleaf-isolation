@@ -64,15 +64,16 @@ def main(args):
     if DEBUG:
         logger.debug(f"Custom Args: {custom_args}")
 
-    # TODO: can this be more restricted? 
-    # mounts tmp und dev for biblatex and other packages needed...
+    # TODO: can this be more restricted?
     apptainer_command = [
         "apptainer", "exec",
-        "--cleanenv",
-        "--no-mount", "sys,tmp",
-        "--no-home",
-        "--no-privs",
-        "--writable-tmpfs",
+        "--cleanenv", # ! important: resets environment variables
+        "--no-mount", "hostfs,sys,tmp", # proc needed for i.e. inkscape
+        "--no-home", # ! important: no home needed
+        "--drop-caps=all", # ! important: drop all capabilities
+        "--net", "--network", "none", # ! no network needed, maybe for some special latex packages?
+        "--no-privs", #
+        "--writable-tmpfs", # need writable tmp for i.e. biber, bibtex
 #        "--contain", TODO: more secure with that options, but shell-escapes won't work
         "--bind", f"{pwd}:{pwd}", # TODO: same bind needed, because synctex.gz is using old pwd... are there more things that have pwd builtin from previous command?
         "/apptainer/latexmk-isolated.sif"
