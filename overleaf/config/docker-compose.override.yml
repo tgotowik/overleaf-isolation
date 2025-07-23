@@ -1,7 +1,7 @@
 ---
 services:
     sharelatex:
-        image: sharelatex-apptainerv7:5.5.1
+        image: sharelatex-apptainer:5.5.2
         volumes:
           - /apptainer/images/latexmk-isolated.sif:/apptainer/latexmk-isolated.sif:ro
           - /opt/overleaf/overleaf-toolkit/data/overleaf:/var/lib/overleaf
