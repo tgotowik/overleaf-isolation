@@ -1,7 +1,7 @@
 # overleaf-isolation
 Concepts of hardening the Overleaf compilation. Since the community edition compiles as the www-data user, anyone could gain access to all files in that instance.
 
-This solution only requires a minor modification to the Overleaf container, so it should be easy to upgrade by swapping out the latexmk and installing Apptainer. This should work for all versions of Overleaf. It was tested with version ```5.5.1```.
+This solution only requires a minor modification to the Overleaf container, so it should be easy to upgrade by swapping out the latexmk and installing Apptainer. This should work for all versions of Overleaf. It was tested with version ```5.5.2```.
 
 ## Overview
 - ```overleaf/Dockerfile```: Example Dockerfile to create sharelatex image with apptainer installation. Modify the content as needed.
@@ -11,11 +11,11 @@ This solution only requires a minor modification to the Overleaf container, so i
 
 ## Status
 Work in progress: Basically, it works like this, but needs enhancements for hardening:
- - apparmor profile and seccomp profile with bare minimun permissions
+ - implement apparmor profile and seccomp profile with bare minimun permissions?
 
 ## How to
 1. Build apptainer image: ```apptainer build /apptainer/images/latexmk-isolated.sif apptainer/latexmk-isolated.def```.
-2. Build modified sharelatex+apptainer image: ```docker build -t sharelatex-apptainer:5.5.1 .```.
+2. Build modified sharelatex+apptainer image: ```docker build -t sharelatex-apptainer:latest .```.
 3. Modify your ```overleaf/config/docker-compose.override.yml```.
 4. Start overleaf
 
