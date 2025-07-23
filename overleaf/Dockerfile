@@ -19,5 +19,3 @@ RUN mv /usr/local/bin/latexmk /usr/local/bin/latexmkoriginal
 # Copy proof-of-concept latexmk
 COPY latexmk /usr/local/bin/latexmk
 RUN chmod 777 /usr/local/bin/latexmk
-
-CMD ["/sbin/my_init"]
