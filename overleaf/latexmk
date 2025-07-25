@@ -57,9 +57,6 @@ def main(args):
         with open(auxdir + "/output.log", "a") as f:
             f.write("Error: Filename not supported. Please only use letters, hyphens, underscore and spaces before the .tex\n")
         sys.exit(0)
-
-    safe_file_path = os.path.join(pwd, filename)
-    custom_args[-1] = safe_file_path
     
     if DEBUG:
         logger.debug(f"Custom Args: {custom_args}")
